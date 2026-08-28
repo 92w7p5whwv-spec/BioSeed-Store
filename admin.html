@@ -1,0 +1,201 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>BioSeed — Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Public+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<style>
+:root{
+  --forest:#1f3b2c;--forest-dark:#152a20;--moss:#4f7942;--moss-dark:#3c5e32;
+  --wheat:#d4a93b;--clay:#9c4a1f;--paper:#f4f1e2;--paper-alt:#ece6d2;
+  --ink:#1c261e;--ink-soft:#4c5a4e;--line:#d8d2bb;--white:#fffdf7;
+  --radius:14px;--shadow:0 10px 30px rgba(31,59,44,.09);
+}
+*{box-sizing:border-box}
+body{margin:0;font-family:"Public Sans",Arial,sans-serif;color:var(--ink);background:var(--paper)}
+h1,h2,h3{font-family:"Fraunces",Georgia,serif;color:var(--forest);margin:0}
+.mono{font-family:"IBM Plex Mono",monospace}
+button{font:inherit;cursor:pointer}
+input,select{font:inherit;padding:10px;border:1px solid var(--line);border-radius:10px;background:var(--paper)}
+:focus-visible{outline:3px solid var(--wheat);outline-offset:2px}
+
+header{background:var(--forest-dark);color:var(--white);padding:16px 5%;display:flex;align-items:center;justify-content:space-between}
+header .logo{font-family:"Fraunces",serif;font-size:20px;font-weight:700;display:flex;align-items:center;gap:8px}
+header button{background:none;border:1px solid rgba(255,255,255,.3);color:var(--white);border-radius:999px;padding:8px 16px;font-size:13.5px}
+
+.wrap{max-width:1100px;margin:0 auto;padding:34px 5%}
+
+/* login gate */
+#loginGate{max-width:380px;margin:80px auto;background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:30px;box-shadow:var(--shadow)}
+#loginGate h2{margin-bottom:6px}
+#loginGate p{color:var(--ink-soft);font-size:14px;margin:0 0 18px}
+#loginGate label{font-weight:700;font-size:13px;color:var(--forest);display:block;margin:12px 0 6px}
+#loginGate input{width:100%}
+#loginGate button{width:100%;margin-top:16px;border:0;border-radius:999px;padding:13px;background:var(--forest);color:var(--white);font-weight:700}
+#loginError{color:var(--clay);font-size:13px;min-height:16px;margin-top:8px}
+#deniedMsg{display:none;color:var(--clay);font-size:13.5px;margin-top:10px}
+
+/* stats */
+.stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:16px;margin-bottom:30px}
+.stat{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.stat b{font-family:"Fraunces",serif;font-size:26px;display:block;color:var(--forest)}
+.stat span{font-size:12.5px;color:var(--ink-soft);text-transform:uppercase;letter-spacing:.04em}
+
+/* filters */
+.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:18px}
+.filters button{border:1px solid var(--line);background:var(--white);border-radius:999px;padding:8px 16px;font-size:13.5px;font-weight:600;color:var(--ink-soft)}
+.filters button.active{background:var(--forest);border-color:var(--forest);color:var(--white)}
+
+/* orders table */
+.order-card{background:var(--white);border:1px solid var(--line);border-radius:var(--radius);padding:18px 20px;margin-bottom:14px;box-shadow:var(--shadow)}
+.order-card .top{display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:10px}
+.order-card .customer{font-weight:700}
+.order-card .meta{font-size:12.5px;color:var(--ink-soft)}
+.order-card .items{font-size:13.5px;color:var(--ink-soft);margin:8px 0;line-height:1.6}
+.order-card .bottom{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;margin-top:10px;border-top:1px solid var(--line);padding-top:10px}
+.order-card .total{font-weight:700;color:var(--forest);font-size:16px}
+.status-tag{font-size:11px;font-weight:800;text-transform:uppercase;padding:4px 10px;border-radius:999px}
+.status-pending{background:#fbe9c9;color:#8a5a11}
+.status-confirmed{background:#dce9da;color:var(--moss-dark)}
+.status-shipped{background:#d4e3ef;color:#1f5178}
+.status-delivered{background:#d7ead4;color:#245c1e}
+.status-cancelled{background:#f3d6d0;color:#8a2f1c}
+.empty{text-align:center;color:var(--ink-soft);padding:60px 0}
+</style>
+</head>
+<body>
+
+<div id="loginGate">
+  <h2>Espace Admin</h2>
+  <p>Connectez-vous avec votre compte administrateur BioSeed.</p>
+  <label>Email</label><input id="loginEmail" type="email">
+  <label>Mot de passe</label><input id="loginPassword" type="password">
+  <button onclick="doLogin()">Se connecter</button>
+  <p id="loginError"></p>
+  <p id="deniedMsg">Ce compte n'a pas accès au tableau de bord admin.</p>
+</div>
+
+<div id="dashboard" style="display:none">
+  <header>
+    <div class="logo">🌾 BioSeed — Admin</div>
+    <button onclick="doLogout()">Se déconnecter</button>
+  </header>
+  <div class="wrap">
+    <div class="stats">
+      <div class="stat"><b id="statTotal">0</b><span>Commandes</span></div>
+      <div class="stat"><b id="statPending">0</b><span>En attente</span></div>
+      <div class="stat"><b id="statRevenue">0</b><span>CA livré (MAD)</span></div>
+    </div>
+    <div class="filters" id="filters"></div>
+    <div id="ordersList"></div>
+  </div>
+</div>
+
+<script type="module">
+import { auth, db, ADMIN_EMAILS } from "./firebase-init.js";
+import { signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import { collection, query, orderBy, getDocs, doc, updateDoc } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const STATUS = ['pending','confirmed','shipped','delivered','cancelled'];
+const STATUS_LABELS = { pending:'En attente', confirmed:'Confirmée', shipped:'Expédiée', delivered:'Livrée', cancelled:'Annulée' };
+let allOrders = [];
+let activeFilter = 'all';
+
+window.doLogin = async function(){
+  const email = document.getElementById('loginEmail').value;
+  const password = document.getElementById('loginPassword').value;
+  const err = document.getElementById('loginError');
+  err.textContent = '';
+  try{
+    await signInWithEmailAndPassword(auth, email, password);
+  } catch(e){
+    err.textContent = "Email ou mot de passe incorrect.";
+  }
+}
+window.doLogout = function(){ signOut(auth); }
+
+onAuthStateChanged(auth, async (user) => {
+  const denied = document.getElementById('deniedMsg');
+  denied.style.display = 'none';
+  if(user && ADMIN_EMAILS.includes(user.email)){
+    document.getElementById('loginGate').style.display = 'none';
+    document.getElementById('dashboard').style.display = 'block';
+    loadOrders();
+  } else if(user){
+    // signed in but not an admin — Firestore rules will also block reads
+    await signOut(auth);
+    denied.style.display = 'block';
+  } else {
+    document.getElementById('loginGate').style.display = 'block';
+    document.getElementById('dashboard').style.display = 'none';
+  }
+});
+
+function renderFilters(){
+  const el = document.getElementById('filters');
+  const opts = [{id:'all',label:'Toutes'}, ...STATUS.map(s=>({id:s,label:STATUS_LABELS[s]}))];
+  el.innerHTML = opts.map(o => `<button class="${activeFilter===o.id?'active':''}" onclick="setFilter('${o.id}')">${o.label}</button>`).join('');
+}
+window.setFilter = function(id){ activeFilter = id; renderFilters(); renderOrders(); }
+
+async function loadOrders(){
+  const q = query(collection(db,'orders'), orderBy('createdAt','desc'));
+  const snap = await getDocs(q);
+  allOrders = [];
+  snap.forEach(d => allOrders.push({ id:d.id, ...d.data() }));
+  renderFilters();
+  renderStats();
+  renderOrders();
+}
+
+function renderStats(){
+  document.getElementById('statTotal').textContent = allOrders.length;
+  document.getElementById('statPending').textContent = allOrders.filter(o=>(o.status||'pending')==='pending').length;
+  const revenue = allOrders.filter(o=>o.status==='delivered').reduce((s,o)=>s+(o.total||0),0);
+  document.getElementById('statRevenue').textContent = revenue.toLocaleString('fr-FR');
+}
+
+function renderOrders(){
+  const list = document.getElementById('ordersList');
+  const items = activeFilter==='all' ? allOrders : allOrders.filter(o=>(o.status||'pending')===activeFilter);
+  if(!items.length){ list.innerHTML = '<p class="empty">Aucune commande dans cette catégorie.</p>'; return; }
+  list.innerHTML = items.map(o => {
+    const date = o.createdAt ? o.createdAt.toDate().toLocaleString('fr-FR') : '—';
+    const status = o.status || 'pending';
+    return `
+    <div class="order-card">
+      <div class="top">
+        <div>
+          <div class="customer">${o.name||'Client'}</div>
+          <div class="meta">${o.phone||''} · ${o.city||''} · ${date}</div>
+        </div>
+        <span class="status-tag status-${status}">${STATUS_LABELS[status]}</span>
+      </div>
+      <div class="items">${(o.items||[]).map(i=>`${i.qty} × ${i.name}`).join('<br>')}</div>
+      <div class="bottom">
+        <span class="total mono">${(o.total||0).toLocaleString('fr-FR')} MAD</span>
+        <select onchange="updateStatus('${o.id}', this.value)">
+          ${STATUS.map(s=>`<option value="${s}" ${s===status?'selected':''}>${STATUS_LABELS[s]}</option>`).join('')}
+        </select>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+window.updateStatus = async function(orderId, newStatus){
+  try{
+    await updateDoc(doc(db,'orders',orderId), { status:newStatus });
+    const o = allOrders.find(o=>o.id===orderId);
+    if(o) o.status = newStatus;
+    renderStats();
+    renderOrders();
+  } catch(e){
+    alert("Impossible de mettre à jour le statut.");
+  }
+}
+</script>
+</body>
+</html>
