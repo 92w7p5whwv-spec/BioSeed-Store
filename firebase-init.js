@@ -20,4 +20,4 @@ export const db = getFirestore(app);
 // ⚠️ Replace with your real email(s) — this list controls who can open admin.html
 // It must match the list inside firestore.rules exactly, or the dashboard will load
 // the page but Firestore will refuse to hand over the orders.
-export const ADMIN_EMAILS = ["admin@bioseed.ma"];
+export const ADMIN_EMAILS = ["lahmar.mohamed.302@gmail.com"];
