@@ -9,7 +9,7 @@ service cloud.firestore {
 
     function isAdmin() {
       return request.auth != null &&
-             request.auth.token.email in ["admin@bioseed.ma"];
+             request.auth.token.email in ["lahmar.mohamed.302@gmail.com"];
     }
 
     // users/{uid} — each customer's own profile (name, phone, city)
